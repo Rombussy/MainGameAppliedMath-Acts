@@ -107,4 +107,5 @@ MonoBehaviour:
   speed: 5
   lifeTime: 6
   bulletRadius: 0.5
+  coinPrefab: {fileID: 8141880630237460505, guid: b7c0148fbb71c2143a397f40a92c6279, type: 3}
   creature: {fileID: 0}

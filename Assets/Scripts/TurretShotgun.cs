@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ShotgunTurret : MonoBehaviour
+public class TurretShotgun : MonoBehaviour
 {
     [SerializeField] private Transform creature;
 
@@ -29,8 +29,14 @@ public class ShotgunTurret : MonoBehaviour
 
     private void Update()
     {
-        if (EscapeRoute.hasEscaped || creature == null)
+        if (creature == null || !creature.gameObject.activeInHierarchy || !EnemyInRange(creature.position - transform.position))
+        {
+            GetNextTarget();
+        }
+
+        if (creature == null || !creature.gameObject.activeInHierarchy)
             return;
+
         Vector2 dir = creature.position - transform.position;
 
         if (EnemyInRange(dir))
@@ -43,6 +49,19 @@ public class ShotgunTurret : MonoBehaviour
             {
                 ShotgunShoot(baseAngle);
                 nextFireTime = Time.time + fireRate;
+            }
+        }
+    }
+
+    private void GetNextTarget()
+    {
+        CreatureMovement[] targets = FindObjectsByType<CreatureMovement>(FindObjectsSortMode.None);
+        foreach (var t in targets)
+        {
+            if (t.gameObject.activeInHierarchy && EnemyInRange(t.transform.position - transform.position))
+            {
+                creature = t.transform;
+                return;
             }
         }
     }
@@ -78,6 +97,11 @@ public class ShotgunTurret : MonoBehaviour
 
             lineRenderer.SetPosition(i, new Vector3(x, y, center.z));
         }
+    }
+
+    public void SetTarget(Transform newTarget)
+    {
+        creature = newTarget;
     }
 
     private void ShotgunShoot(float baseAngle)

@@ -1,10 +1,8 @@
-using Unity.Android.Gradle;
 using UnityEngine;
-using static UnityEngine.Rendering.HableCurve;
 
 public class TurretSniper : MonoBehaviour
 {
-    [SerializeField] Transform creature;
+    [SerializeField] private Transform creature;
 
     [Header("Target Lock Detection")]
     public float range = 20f;
@@ -19,6 +17,7 @@ public class TurretSniper : MonoBehaviour
     public Transform firePoint;
     public float fireRate = 0.6f;
     private float nextFireTime;
+
     private void Awake()
     {
         DrawLineArea();
@@ -26,7 +25,12 @@ public class TurretSniper : MonoBehaviour
 
     private void Update()
     {
-        if (EscapeRoute.hasEscaped || creature == null)
+        if (creature == null || !creature.gameObject.activeInHierarchy || Vector2.Distance(transform.position, creature.position) > range)
+        {
+            GetNextTarget();
+        }
+
+        if (creature == null || !creature.gameObject.activeInHierarchy)
             return;
 
         Vector2 dir = creature.position - transform.position; //getting the direction of the enemy
@@ -50,11 +54,24 @@ public class TurretSniper : MonoBehaviour
         }
     }
 
+    private void GetNextTarget()
+    {
+        CreatureMovement[] targets = FindObjectsByType<CreatureMovement>(FindObjectsSortMode.None);
+        foreach (var t in targets)
+        {
+            if (t.gameObject.activeInHierarchy && Vector2.Distance(transform.position, t.transform.position) <= range)
+            {
+                creature = t.transform;
+                return;
+            }
+        }
+    }
+
     private void DrawLineArea()
     {
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.useWorldSpace = false;
-        lineRenderer.loop = false; 
+        lineRenderer.loop = false;
 
         lineRenderer.startWidth = 0.05f;
         lineRenderer.endWidth = 0.05f;
@@ -68,6 +85,11 @@ public class TurretSniper : MonoBehaviour
         lineRenderer.SetPosition(1, new Vector3(range, 0f, 0f));
     }
 
+    public void SetTarget(Transform newTarget)
+    {
+        creature = newTarget;
+    }
+
     private void SniperShoot()
     {
         if (projectilePrefab == null)
@@ -75,7 +97,7 @@ public class TurretSniper : MonoBehaviour
 
         Vector3 spawnPosition = firePoint != null ? firePoint.position : transform.position;
         GameObject proObj = Instantiate(projectilePrefab, spawnPosition, transform.rotation);
-    
+
         BulletProjectile projectile = proObj.GetComponent<BulletProjectile>();
         if (projectile != null)
         {

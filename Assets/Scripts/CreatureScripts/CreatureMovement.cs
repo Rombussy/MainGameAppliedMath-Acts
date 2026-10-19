@@ -1,37 +1,44 @@
-using Unity.VisualScripting;
 using System.Collections;
 using UnityEngine;
 
 public class CreatureMovement : MonoBehaviour
 {
-    //configs
     public enum PathType
     {
         Quadratic,
         Cubic
     }
 
-    //Setting up the movement of the creature rawr
-    public Transform targetPlayer;
+    [Header("Movement Settings")]
     public PathType pathType = PathType.Quadratic;
-    public float durationCreature = 2f; //duration of creature going towards the player
-
+    public float durationCreature = 2f;
     public float arcHeight = 3f;
     public float sCurve = 2f;
 
-    void Start()
+    public float creatureDamage = 1f;
+
+    private Transform targetLocation; 
+    private Coroutine moveCoroutine;
+
+    public void Initialize(Transform target, PathType path)
     {
-        if (targetPlayer != null)
+        targetLocation = target;
+        pathType = path;
+
+        if (moveCoroutine != null)
         {
-            StartCoroutine(MoveCreature());
+            StopCoroutine(moveCoroutine);
         }
+
+        moveCoroutine = StartCoroutine(MoveCreature());
     }
 
     private IEnumerator MoveCreature()
     {
-        Vector3 startPoint = transform.position;
-        Vector3 endPoint = targetPlayer.position;
+        if (targetLocation == null) yield break;
 
+        Vector3 startPoint = transform.position;
+        Vector3 endPoint = targetLocation.position;
         float elapsed = 0f;
 
         //QuadraticMovement 3 ctrl points
@@ -61,7 +68,6 @@ public class CreatureMovement : MonoBehaviour
             Vector3 p1Base = Vector3.Lerp(startPoint, p3, 0.33f);
             Vector3 p2Base = Vector3.Lerp(startPoint, p3, 0.66f);
 
-            //Pull Middle point Up and Middle Down to create Scurve
             Vector3 p1 = p1Base + Vector3.up * sCurve;
             Vector3 p2 = p2Base - Vector3.up * sCurve;
 
@@ -69,14 +75,21 @@ public class CreatureMovement : MonoBehaviour
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / durationCreature;
-
-                transform.position = BezierMath.Cubic(startPoint, p1, p2,p3, t);
-
+                transform.position = BezierMath.Cubic(startPoint, p1, p2, p3, t);
                 yield return null;
             }
-
         }
 
         transform.position = endPoint;
+
+        if (targetLocation != null)
+        {
+            PlayerHealth playerHealth = targetLocation.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(creatureDamage);
+            }
+        }
+        gameObject.SetActive(false);
     }
 }

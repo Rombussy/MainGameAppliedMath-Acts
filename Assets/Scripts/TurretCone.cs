@@ -1,11 +1,8 @@
-using Unity.Android.Gradle;
 using UnityEngine;
-using static UnityEditor.FilePathAttribute;
-using static UnityEngine.Rendering.HableCurve;
 
 public class TurretCone : MonoBehaviour
 {
-    [SerializeField] Transform creature;
+    [SerializeField] private Transform creature;
 
     [Header("Target Lock Detection")]
     public float range = 5f;
@@ -21,15 +18,22 @@ public class TurretCone : MonoBehaviour
     public Transform firePoint;
     public float fireRate = 0.6f;
     private float nextFireTime;
+    private float defaultAngle;
 
     private void Awake()
     {
+        defaultAngle = transform.eulerAngles.z;
         DrawConeArea();
     }
 
     private void Update()
     {
-        if (EscapeRoute.hasEscaped || creature == null)
+        if (creature == null || !creature.gameObject.activeInHierarchy || !EnemyInRange(creature.position - transform.position, Mathf.Atan2(creature.position.y - transform.position.y, creature.position.x - transform.position.x) * Mathf.Rad2Deg))
+        {
+            GetNextTarget();
+        }
+
+        if (creature == null || !creature.gameObject.activeInHierarchy)
             return;
 
         Vector2 dir = creature.position - transform.position; //getting the direction of the enemy
@@ -37,31 +41,48 @@ public class TurretCone : MonoBehaviour
 
         if (EnemyInRange(dir, pAngle))
         {
-          //rotating the turrets
+            //rotating the turrets
             transform.eulerAngles = new Vector3(0f, 0f, pAngle);
 
             //fire projectile from ConeShoot
             if (Time.time >= nextFireTime)
             {
                 ConeShoot();
-                nextFireTime = Time.time * fireRate;
+                nextFireTime = Time.time + fireRate;
+            }
+        }
+        else
+        {
+            transform.eulerAngles = new Vector3(0f, 0f, defaultAngle);
+        }
+    }
+
+    private void GetNextTarget()
+    {
+        CreatureMovement[] targets = FindObjectsByType<CreatureMovement>(FindObjectsSortMode.None);
+        foreach (var t in targets)
+        {
+            if (t.gameObject.activeInHierarchy)
+            {
+                Vector2 dir = t.transform.position - transform.position;
+                float pAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                if (EnemyInRange(dir, pAngle))
+                {
+                    creature = t.transform;
+                    return;
+                }
             }
         }
     }
 
-    public bool EnemyInRange(Vector2 dir , float pAngle)
+    public bool EnemyInRange(Vector2 dir, float pAngle)
     {
-    
         if (dir.magnitude > range)
             return false;
-         
-        float tAngle = transform.eulerAngles.z;
 
-        float delta = Mathf.Abs(Mathf.DeltaAngle(tAngle, pAngle));
+        float delta = Mathf.Abs(Mathf.DeltaAngle(defaultAngle, pAngle));
 
         return delta <= coneAngle / 2f;
-
-
     }
 
     private void DrawConeArea()
@@ -84,7 +105,6 @@ public class TurretCone : MonoBehaviour
 
         for (int i = 0; i < lineSegments; i++)
         {
-
             float currentAngle = Mathf.Lerp(startAngle, endAngle, (float)i / (lineSegments - 1));
             float rad = currentAngle * Mathf.Deg2Rad;
 
@@ -93,14 +113,18 @@ public class TurretCone : MonoBehaviour
 
             lineRenderer.SetPosition(i + 1, new Vector3(x, y, 0f));
         }
+    }
 
+    public void SetTarget(Transform newTarget)
+    {
+        creature = newTarget;
     }
 
     private void ConeShoot()
     {
         if (projectilePrefab == null)
             return;
-        
+
         Vector3 spawnPosition = firePoint != null ? firePoint.position : transform.position;
         GameObject proObj = Instantiate(projectilePrefab, spawnPosition, transform.rotation);
 
@@ -111,4 +135,3 @@ public class TurretCone : MonoBehaviour
         }
     }
 }
-    
