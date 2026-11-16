@@ -1,4 +1,4 @@
-Activity 2 - 9
+Activity 2 - 8
 
 Activity 4
 -Quadratic and Cubic creature movement
@@ -6,7 +6,7 @@ Activity 4
 -Coins Collection with pulsing/punch animation
 -Player HP using LERP LERP LERP 
 
-Activity 9
+Activity 8
 AABB Collider
 ColliderManager
 Player Controller
