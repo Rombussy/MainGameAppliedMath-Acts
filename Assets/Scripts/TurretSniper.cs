@@ -68,7 +68,7 @@ public class TurretSniper : MonoBehaviour
     }
 
     private void DrawLineArea()
-    {
+    {   
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.useWorldSpace = false;
         lineRenderer.loop = false;
