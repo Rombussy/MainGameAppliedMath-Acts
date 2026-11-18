@@ -6,6 +6,7 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] Obstacles obstaclePrefab;
     [SerializeField] Transform[] _lanes;
     [SerializeField] float spawnInterval = 1f;
+    [SerializeField] PlayerControl _player;
     private float timer;
 
     private void Update()
@@ -27,6 +28,7 @@ public class ObstacleSpawner : MonoBehaviour
         Transform chosenLane = _lanes[randomLane];
         Obstacles newObstacles = Instantiate(obstaclePrefab);
         newObstacles.laneIndex = randomLane;
+        newObstacles.player = _player;
 
         newObstacles.obstaclePosition = new Vector3(chosenLane.position.x, chosenLane.position.y, newObstacles.obstaclePosition.z);
         newObstacles.Perspective();

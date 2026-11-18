@@ -9,7 +9,7 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] float _jumpF = 5f;
     [SerializeField] float _gravity = -20f;
     public int playerLane = 1; //Indicator where the current player is!!!! 
-    private bool _isJumping = false;
+    public bool _isJumping = false;
     private float _baseY;
     private float _velocityY;
     

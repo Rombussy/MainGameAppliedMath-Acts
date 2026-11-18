@@ -2,7 +2,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
+
 public class PlayerHealth : MonoBehaviour
 {
     [Header("UI Sliders")]
@@ -10,8 +12,9 @@ public class PlayerHealth : MonoBehaviour
     public Slider easeSlider;
 
     [Header("Health Settings")]
-    public float maxHealth = 20f;
+    public float maxHealth = 100f;
     public float health;
+    public float regenRate = 1f;
     public float ghostBarDelayDuration = 0.04f; //ghost health bar stays after taking dmg
     public float ghostBarEaseDuration = 0.05f; //after that ghost bar dissapears/ease slowly
 
@@ -20,7 +23,7 @@ public class PlayerHealth : MonoBehaviour
     private bool isEasing = false;
 
 
-    
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -37,9 +40,19 @@ public class PlayerHealth : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (health < maxHealth)
+        {
+            health = Mathf.Clamp(health + regenRate * Time.deltaTime, 0, maxHealth);
+        }
+
         if (healthSlider.value != health)
         {
             healthSlider.value = health;
+        }
+
+        if (!isEasing && easeSlider.value != health)
+        {
+            easeSlider.value = health;
         }
 
         //Ease Animation
@@ -64,6 +77,12 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health = Mathf.Clamp(health - damage, 0, maxHealth);
+
+        if (health <= 0)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            return;
+        }
 
         startingGhostValue = easeSlider.value;
         timer = 0f;
